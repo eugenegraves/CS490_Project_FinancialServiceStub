@@ -10,12 +10,12 @@ CORS(app)
 def receiveFinanceApp():
     try:
         data = request.get_json()
-        print(data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     response = computeAndSendDecision(data)
     print(response.get_json())
-    return jsonify({'message': 'Stub has recieved application'}), 201
+    print(type(response.get_json()))
+    return response.get_json()
 def computeAndSendDecision(data):
     credit_score = random.randint(580, 850)
     print(credit_score)
@@ -37,7 +37,6 @@ def computeAndSendDecision(data):
 
     monthly_income = int(data["annual_income"]) / 12
     monthly_payment = math.ceil((int(data["purchase_price"]) * (apr / 12) * (1 + (apr / 12)) ** (loan_term)) / ((1 + (apr / 12)) ** (loan_term) - 1))
-    print(monthly_payment)
     debt_to_income_ratio = (monthly_payment / monthly_income) * 100
     if (debt_to_income_ratio <= 36):
         if (credit_score >= 600):
