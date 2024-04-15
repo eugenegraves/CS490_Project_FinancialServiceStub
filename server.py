@@ -42,6 +42,7 @@ def computeAndSendDecision(data):
         if (credit_score >= 600):
             response = {
                 'status': 'approved',
+                'credit_score' : credit_score,
                 'terms': {
                     'principal': data["purchase_price"],
                     'apr': apr,
