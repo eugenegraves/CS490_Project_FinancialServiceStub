@@ -2,9 +2,38 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import random
 import math
-#hello
+from flask_sqlalchemy import SQLAlchemy
+
 app = Flask(__name__)
+
+#hello
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Westwood-18@localhost/cars_dealershipx' #Abdullah Connection
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:great-days321@localhost/cars_dealershipx' #Dylan Connection 
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:A!19lopej135@localhost/cars_dealershipx' # joan connection
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:12340@192.168.56.1/cars_dealershipx'# Ismael connection
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*_-wowza-shaw1289@localhost/cars_dealershipx' #hamza connection
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:42Drm400$!@localhost/cars_dealershipx'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 CORS(app)
+
+class CustomersBankDetails(db.Model):
+    __tablename__ = 'customers_bank_details'
+
+    bank_detail_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    bank_name = db.Column(db.String(45), nullable=False)
+    account_number = db.Column(db.String(20), nullable=False)  
+    routing_number = db.Column(db.String(20), nullable=False)  
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.customer_id'), nullable=False)
+    credit_score = db.Column(db.Integer)  
+
+
+    customer = db.relationship('Customer', backref=db.backref('bank_details', lazy=True))
+
+
+
 
 @app.route('/receive_finance_application', methods=['POST'])
 def receiveFinanceApp():
@@ -42,7 +71,7 @@ def computeAndSendDecision(data):
         if (credit_score >= 600):
             response = {
                 'status': 'approved',
-                'credit_score' : credit_score,
+                'credit_score': credit_score,
                 'terms': {
                     'principal': data["purchase_price"],
                     'apr': apr,
@@ -54,14 +83,20 @@ def computeAndSendDecision(data):
         else:
             response = {
                 'status': 'declined',
+                'credit_score': credit_score,
                 'reason': 'low credit score'
             }
             return jsonify(response)
     else:
         response = {
             'status': 'declined',
+            'credit_score': credit_score,
             'reason': 'cannot afford'
         }
         return jsonify(response)
+
+
+
+
 if __name__ == "__main__":
     app.run(debug = True, host='localhost', port='5001')
