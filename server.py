@@ -8,29 +8,7 @@ app = Flask(__name__)
 
 #hello
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Westwood-18@localhost/cars_dealershipx' #Abdullah Connection
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:great-days321@localhost/cars_dealershipx' #Dylan Connection 
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:A!19lopej135@localhost/cars_dealershipx' # joan connection
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:12340@192.168.56.1/cars_dealershipx'# Ismael connection
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*_-wowza-shaw1289@localhost/cars_dealershipx' #hamza connection
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:42Drm400$!@localhost/cars_dealershipx'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 CORS(app)
-
-class CustomersBankDetails(db.Model):
-    __tablename__ = 'customers_bank_details'
-
-    bank_detail_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    bank_name = db.Column(db.String(45), nullable=False)
-    account_number = db.Column(db.String(20), nullable=False)  
-    routing_number = db.Column(db.String(20), nullable=False)  
-    customer_id = db.Column(db.Integer, db.ForeignKey('customers.customer_id'), nullable=False)
-    credit_score = db.Column(db.Integer)  
-
-
-    customer = db.relationship('Customer', backref=db.backref('bank_details', lazy=True))
 
 
 
@@ -45,6 +23,7 @@ def receiveFinanceApp():
     print(response.get_json())
     print(type(response.get_json()))
     return response.get_json()
+
 def computeAndSendDecision(data):
     credit_score = random.randint(580, 850)
     print(credit_score)
@@ -63,7 +42,7 @@ def computeAndSendDecision(data):
     else:
         apr = 0.1
         loan_term = 72
-
+    customer_id = data.get('customer_id')
     monthly_income = int(data["annual_income"]) / 12
     monthly_payment = math.ceil((int(data["purchase_price"]) * (apr / 12) * (1 + (apr / 12)) ** (loan_term)) / ((1 + (apr / 12)) ** (loan_term) - 1))
     debt_to_income_ratio = (monthly_payment / monthly_income) * 100
@@ -72,6 +51,7 @@ def computeAndSendDecision(data):
             response = {
                 'status': 'approved',
                 'credit_score': credit_score,
+                'customer_id': customer_id,
                 'terms': {
                     'principal': data["purchase_price"],
                     'apr': apr,
@@ -84,6 +64,7 @@ def computeAndSendDecision(data):
             response = {
                 'status': 'declined',
                 'credit_score': credit_score,
+                'customer_id': customer_id,
                 'reason': 'low credit score'
             }
             return jsonify(response)
@@ -91,6 +72,7 @@ def computeAndSendDecision(data):
         response = {
             'status': 'declined',
             'credit_score': credit_score,
+            'customer_id': customer_id,
             'reason': 'cannot afford'
         }
         return jsonify(response)
