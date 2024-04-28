@@ -73,8 +73,14 @@ def receiveFinanceApp():
     return response.get_json()
 
 def computeAndSendDecision(data):
-    credit_score = random.randint(580, 850)
-    print(credit_score)
+    customer_id = data.get('customer_id')
+    bank_details = CustomersBankDetails.query.filter_by(customer_id=customer_id).first()
+
+    if bank_details and bank_details.credit_score is not None: 
+        credit_score = bank_details.credit_score
+    else:
+        credit_score = random.randint(580, 850)
+
     if credit_score >= 780:
         apr = 0.035
         loan_term = 60
