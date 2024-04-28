@@ -137,7 +137,47 @@ def Credit_score(response):
             db.session.commit()
         else:
             return jsonify({'error': 'Customer bank details not found'}), 404
-        
+
+
+
+@app.route('/add-customerBankInfo/<int:customer_id>', methods=['POST'])
+def add_or_update_customer_bank_info(customer_id):
+    customer = Customer.query.get(customer_id)
+    if customer:
+        bank_name = request.json.get('bank_name')
+        account_number = str(request.json.get('account_number'))
+        routing_number = str(request.json.get('routing_number'))
+
+        if not all([bank_name, account_number, routing_number]):
+            return jsonify({'error': 'Missing bank information'}), 400
+
+        # Validate account number and routing number format (you may need more sophisticated validation)
+        if not (account_number.isdigit() and routing_number.isdigit()):
+            return jsonify({'error': 'Invalid account or routing number format'}), 400
+
+        existing_bank_details = CustomersBankDetails.query.filter_by(customer_id=customer_id).first()
+
+        if existing_bank_details:
+            existing_bank_details.bank_name = bank_name
+            existing_bank_details.account_number = account_number
+            existing_bank_details.routing_number = routing_number
+        else:
+            new_bank_details = CustomersBankDetails(
+                bank_name=bank_name,
+                account_number=account_number,
+                routing_number=routing_number,
+                customer_id=customer_id
+            )
+            db.session.add(new_bank_details)
+
+        db.session.commit()
+
+        return jsonify({'message': 'Bank details added/updated successfully'}), 201
+    else:
+        return jsonify({'error': 'Customer not found'}), 404
+
+
+       
 
 if __name__ == "__main__":
     app.run(debug = True, host='localhost', port='5001')
