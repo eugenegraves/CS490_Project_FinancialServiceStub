@@ -11,7 +11,7 @@ app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Westwood-18@localhost/cars_dealershipx' #Abdullah Connection
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:great-days321@localhost/cars_dealershipx' #Dylan Connection 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:A!19lopej135@localhost/cars_dealershipx' # joan connection
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:12340@192.168.56.1/cars_dealershipx'# Ismael connection
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:12340@192.168.56.1/cars_dealershipx'# Ismael connection
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*_-wowza-shaw1289@localhost/cars_dealershipx' #hamza connection
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:42Drm400$!@localhost/cars_dealershipx'
 
@@ -100,23 +100,33 @@ def computeAndSendDecision(data):
     monthly_income = int(data["annual_income"]) / 12
     down_payment = int(data["purchase_price"]) * 0.2
     monthly_payment = math.ceil(((int(data["purchase_price"]) - down_payment) * (apr / 12) * (1 + (apr / 12)) ** (loan_term)) / ((1 + (apr / 12)) ** (loan_term) - 1))
-    debt_to_income_ratio = ((monthly_payment - down_payment) / monthly_income) * 100    
+    debt_to_income_ratio = ((monthly_payment) / monthly_income) * 100    
     if (debt_to_income_ratio <= 36):
         if (credit_score >= 600):
-            response = {
-                'status': 'approved',
-                'credit_score': credit_score,
-                'customer_id': customer_id,
-                'terms': {
-                    'principal': data["purchase_price"],
-                    'apr': apr,
-                    'loan_term': loan_term,
-                    'down_payment': down_payment,
-                    'monthly_payment': monthly_payment
+            if (down_payment <= 0.2 * int(data["annual_income"])):
+                response = {
+                    'status': 'approved',
+                    'credit_score': credit_score,
+                    'customer_id': customer_id,
+                    'terms': {
+                        'principal': data["purchase_price"],
+                        'apr': apr,
+                        'loan_term': loan_term,
+                        'down_payment': down_payment,
+                        'monthly_payment': monthly_payment
+                    }
                 }
-            }
-            Credit_score(response)  
-            return jsonify(response)
+                Credit_score(response)  
+                return jsonify(response)
+            else:
+                response = {
+                    'status': 'declined',
+                    'credit_score': credit_score,
+                    'customer_id': customer_id,
+                    'reason': 'cannot afford the down payment'
+                }
+                Credit_score(response)    
+                return jsonify(response)
         else:
             response = {
                 'status': 'declined',
