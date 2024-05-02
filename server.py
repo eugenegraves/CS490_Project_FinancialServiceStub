@@ -8,12 +8,12 @@ app = Flask(__name__)
 
 #hello
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Westwood-18@localhost/cars_dealershipx' #Abdullah Connection
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Westwood-18@localhost/cars_dealershipx' #Abdullah Connection
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:great-days321@localhost/cars_dealershipx' #Dylan Connection 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:A!19lopej135@localhost/cars_dealershipx' # joan connection
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:12340@192.168.56.1/cars_dealershipx'# Ismael connection
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*_-wowza-shaw1289@localhost/cars_dealershipx' #hamza connection
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:42Drm400$!@localhost/cars_dealershipx'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:42Drm400$!@localhost/cars_dealershipx'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -98,8 +98,9 @@ def computeAndSendDecision(data):
         loan_term = 72
     customer_id = data.get('customer_id')
     monthly_income = int(data["annual_income"]) / 12
-    monthly_payment = math.ceil((int(data["purchase_price"]) * (apr / 12) * (1 + (apr / 12)) ** (loan_term)) / ((1 + (apr / 12)) ** (loan_term) - 1))
-    debt_to_income_ratio = (monthly_payment / monthly_income) * 100
+    down_payment = int(data["purchase_price"]) * 0.2
+    monthly_payment = math.ceil(((int(data["purchase_price"]) - down_payment) * (apr / 12) * (1 + (apr / 12)) ** (loan_term)) / ((1 + (apr / 12)) ** (loan_term) - 1))
+    debt_to_income_ratio = ((monthly_payment - down_payment) / monthly_income) * 100    
     if (debt_to_income_ratio <= 36):
         if (credit_score >= 600):
             response = {
@@ -110,6 +111,7 @@ def computeAndSendDecision(data):
                     'principal': data["purchase_price"],
                     'apr': apr,
                     'loan_term': loan_term,
+                    'down_payment': down_payment,
                     'monthly_payment': monthly_payment
                 }
             }
